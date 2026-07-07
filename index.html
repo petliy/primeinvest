@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>ПРАЙМ ИНВЕСТ — Калькулятор возможностей</title>
+<meta content="Интерактивный калькулятор ПРАЙМ ИНВЕСТ для самостоятельной оценки сценариев." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --bg: #F3EFE6;
+      --panel: #FFFDF8;
+      --text: #0B0F19;
+      --muted: #374151;
+      --line: #C9BFAE;
+      --accent: #8A6A2F;
+      --accent-dark: #5F461C;
+      --soft: rgba(138, 106, 47, .09);
+      --grid: rgba(11, 15, 25, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        linear-gradient(180deg, var(--grid) 1px, transparent 1px),
+        var(--bg);
+      background-size: 64px 64px;
+      letter-spacing: -0.015em;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    button, input {
+      font: inherit;
+      color: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(243, 239, 230, .94);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar__inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      height: 54px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .topbar__center {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: .12em;
+    }
+
+    .topbar__right {
+      text-align: right;
+      color: var(--accent-dark);
+    }
+
+    .section {
+      padding: 42px 0;
+    }
+
+    .hero {
+      min-height: calc(100svh - 54px);
+      display: grid;
+      grid-template-columns: .88fr 1.12fr;
+      gap: 34px;
+      align-items: center;
+    }
+
+    .kicker {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: clamp(34px, 4.5vw, 66px);
+      line-height: .96;
+      letter-spacing: -0.07em;
+      font-weight: 600;
+      max-width: 720px;
+    }
+
+    .lead {
+      margin-top: 18px;
+      max-width: 460px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .text-link {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 28px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--accent-dark);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .report-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 42px rgba(11, 15, 25, .06);
+    }
+
+    .monitor {
+      padding: 20px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .panel-head span:last-child {
+      color: var(--accent-dark);
+      white-space: nowrap;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .metric {
+      padding: 15px 14px;
+      border-right: 1px solid var(--line);
+      min-width: 0;
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric__label {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      white-space: nowrap;
+    }
+
+    .metric__value {
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: -0.06em;
+    }
+
+    .chart {
+      position: relative;
+      height: 210px;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(201,191,174,.42) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(201,191,174,.42) 1px, transparent 1px);
+      background-size: 50px 42px;
+    }
+
+    .chart svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart .axis {
+      position: absolute;
+      left: 14px;
+      bottom: 12px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .monitor-copy {
+      padding: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 500;
+      margin: 0;
+      max-width: 640px;
+    }
+
+    .monitor-links {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      align-items: center;
+    }
+
+    .calculator-section {
+      padding-top: 34px;
+      scroll-margin-top: 66px;
+    }
+
+    .section-title {
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.05;
+      letter-spacing: -0.06em;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .calculator {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 41% 59%;
+      min-height: 430px;
+    }
+
+    .calc-left {
+      border-right: 1px solid var(--line);
+      padding: 18px;
+    }
+
+    .calc-right {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 16px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      height: 40px;
+      border: 1px solid var(--line);
+      margin-bottom: 16px;
+      background: #F8F4EC;
+    }
+
+    .tab {
+      height: 38px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0;
+      line-height: 38px;
+      transition: background-color .18s ease, color .18s ease;
+    }
+
+    .tab:last-child { border-right: 0; }
+
+    .tab.active {
+      background: var(--accent-dark);
+      color: #FFFDF8;
+    }
+
+    .calc-panel { display: none; }
+    .calc-panel.active { display: block; }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      margin: -4px 0 12px;
+      font-weight: 500;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--line);
+      background: #FFFDF8;
+      padding: 0 12px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      outline: none;
+      border-radius: 0;
+    }
+
+    input:focus { border-color: var(--accent-dark); }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+
+    .chip {
+      height: 28px;
+      min-width: 44px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      background: #F8F4EC;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+    }
+
+    .chip:hover,
+    .chip.active {
+      background: var(--soft);
+      border-color: var(--accent-dark);
+      color: var(--accent-dark);
+    }
+
+    .result-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: 18px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-row:first-child { border-top: 1px solid var(--line); }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .result-value {
+      font-size: clamp(24px, 4vw, 46px);
+      font-weight: 600;
+      line-height: .95;
+      letter-spacing: -0.07em;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .result-value.small {
+      font-size: clamp(20px, 3vw, 34px);
+    }
+
+    .result-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+
+
+    .intro-section {
+      padding-top: 56px;
+      padding-bottom: 16px;
+    }
+
+    .intro-copy {
+      max-width: 760px;
+    }
+
+    .calc-intro--standalone {
+      margin-top: 26px;
+      max-width: 560px;
+    }
+
+    .statistics-section {
+      scroll-margin-top: 66px;
+    }
+
+    .stat-intro-text {
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 500;
+      margin: 0 0 16px;
+    }
+
+    .telegram {
+      padding: 34px 0 18px;
+    }
+
+    .telegram-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 26px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .telegram h2 {
+      font-size: clamp(24px, 3.4vw, 42px);
+      line-height: 1.04;
+      letter-spacing: -0.06em;
+      font-weight: 600;
+    }
+
+    .telegram p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .facts-line {
+      margin-top: 14px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .tg-box {
+      min-width: 230px;
+      text-align: right;
+    }
+
+    .tg-handle {
+      color: var(--accent-dark);
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid var(--accent-dark);
+      color: var(--panel);
+      background: var(--accent-dark);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .hero-button {
+      margin-top: 26px;
+      min-height: 46px;
+      padding: 0 24px;
+    }
+
+    .stat-button {
+      min-height: 42px;
+      padding: 0 18px;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 16px 0 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .footer span:first-child { color: var(--text); }
+
+
+
+    .faq-section {
+      scroll-margin-top: 66px;
+    }
+
+    .faq-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .faq-item {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .faq-item:last-child { border-bottom: 0; }
+
+    .faq-question {
+      font-size: 15px;
+      line-height: 1.2;
+      letter-spacing: -0.035em;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .faq-answer {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.48;
+      font-weight: 500;
+      max-width: 860px;
+    }
+
+    .faq-answer p + p { margin-top: 9px; }
+
+
+    .hero-calculator {
+      min-height: calc(100svh - 54px);
+      grid-template-columns: .72fr 1.28fr;
+      align-items: center;
+    }
+
+    .hero-copy {
+      align-self: center;
+    }
+
+    .hero-calc {
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero-calc .section-title {
+      margin-bottom: 0;
+    }
+
+    .calc-intro {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 13px;
+    }
+
+    .calc-intro .kicker {
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    .stats-section {
+      scroll-margin-top: 66px;
+    }
+
+    .stats-section .report-panel {
+      width: 100%;
+    }
+
+    .stats-section .chart {
+      height: 300px;
+    }
+
+    .faq-item {
+      padding: 0;
+    }
+
+    .faq-question {
+      list-style: none;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 0;
+      user-select: none;
+    }
+
+    .faq-question::-webkit-details-marker { display: none; }
+
+    .faq-question::after {
+      content: '+';
+      color: var(--accent-dark);
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 500;
+      letter-spacing: -0.04em;
+    }
+
+    .faq-item[open] .faq-question::after {
+      content: '–';
+    }
+
+    .faq-answer {
+      padding: 0 22px 20px;
+    }
+
+    
+
+    .landing-hero {
+      min-height: calc(100svh - 54px);
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 34px;
+      align-items: center;
+      padding-top: 64px;
+      padding-bottom: 44px;
+    }
+
+    .landing-hero__copy {
+      max-width: 760px;
+    }
+
+    .landing-lead {
+      max-width: 620px;
+    }
+
+    .hero-facts {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-self: center;
+    }
+
+    .hero-fact {
+      padding: 24px 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-fact:last-child { border-bottom: 0; }
+
+    .hero-fact__label {
+      display: block;
+      color: var(--accent-dark);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .hero-fact__value {
+      display: block;
+      font-size: clamp(22px, 2.6vw, 34px);
+      line-height: 1.05;
+      letter-spacing: -0.06em;
+      font-weight: 600;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 1fr minmax(260px, 440px);
+      gap: 28px;
+      align-items: end;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+
+    .section-head .kicker {
+      margin-bottom: 10px;
+    }
+
+    .section-head .section-title {
+      margin-bottom: 0;
+    }
+
+    .section-head__text {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .calculator-section {
+      padding-top: 36px;
+    }
+
+    .statistics-section {
+      padding-top: 50px;
+    }
+
+    .statistics-section .report-panel {
+      width: 100%;
+    }
+
+    .statistics-section .chart {
+      height: 300px;
+    }
+
+    .faq-section {
+      padding-top: 48px;
+    }
+
+    .faq-head {
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+
+
+      .landing-hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 42px 0 24px;
+      }
+
+      .section-head {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        align-items: start;
+      }
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 28px 0 18px;
+      }
+
+      .intro-section {
+        padding-top: 34px;
+        padding-bottom: 10px;
+      }
+
+      .calculator {
+        grid-template-columns: 1fr;
+      }
+
+      .calc-left {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .telegram-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-calculator {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .calc-intro {
+        display: block;
+      }
+
+      .calc-intro .kicker {
+        margin-bottom: 10px;
+      }
+
+      .stats-section .chart {
+        height: 150px;
+      }
+
+
+      .tg-box { text-align: left; }
+    }
+
+    @media (max-width: 640px) {
+
+
+      .landing-hero {
+        padding-top: 28px;
+      }
+
+      .hero-fact {
+        padding: 18px;
+      }
+
+      .hero-fact__value {
+        font-size: 24px;
+      }
+
+      .section-head {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+      }
+
+      .section-head__text {
+        font-size: 12px;
+      }
+      .topbar {
+        position: static;
+        top: auto;
+        backdrop-filter: none;
+      }
+
+      .page, .topbar__inner {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .topbar__inner {
+        height: 48px;
+        grid-template-columns: 1fr auto;
+      }
+
+      .topbar__center { display: none; }
+
+      .section { padding: 24px 0; }
+
+      .intro-section {
+        padding-top: 24px;
+        padding-bottom: 4px;
+      }
+
+      .calc-intro--standalone {
+        margin-top: 18px;
+      }
+
+      .stat-intro-text {
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+
+      .hero {
+        padding-top: 18px;
+      }
+
+      h1 {
+        font-size: clamp(30px, 8.4vw, 36px);
+        line-height: 1.02;
+        letter-spacing: -0.055em;
+      }
+
+      .lead {
+        margin-top: 14px;
+        font-size: 14px;
+      }
+
+      .text-link { margin-top: 20px; }
+
+      .monitor { padding: 12px; }
+
+      .monitor-links {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .panel-head {
+        font-size: 10px;
+        gap: 8px;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .metric {
+        padding: 11px 10px;
+      }
+
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(1), .metric:nth-child(2) { border-bottom: 1px solid var(--line); }
+
+      .metric__value { font-size: 20px; }
+      .chart { height: 150px; }
+
+      .calculator-section {
+        padding-top: 18px;
+        scroll-margin-top: 12px;
+      }
+      .section-title { margin-bottom: 12px; }
+
+      .calculator { min-height: 0; }
+
+      .calc-left, .calc-right { padding: 12px; }
+
+      .tabs {
+        height: 36px;
+        margin-bottom: 12px;
+      }
+
+      .tab {
+        height: 34px;
+        line-height: 34px;
+        font-size: 10px;
+      }
+
+      .field { margin-bottom: 9px; }
+
+      label {
+        font-size: 10px;
+        margin-bottom: 5px;
+      }
+
+      input {
+        height: 38px;
+        font-size: 16px;
+      }
+
+      .chip {
+        height: 26px;
+        min-width: 39px;
+        padding: 0 7px;
+        font-size: 10px;
+      }
+
+      .result-row {
+        padding: 10px 0;
+      }
+
+      .result-label { font-size: 10px; }
+      .result-value { font-size: 28px; }
+      .result-value.small { font-size: 23px; }
+
+  
+
+    .intro-section {
+      padding-top: 56px;
+      padding-bottom: 16px;
+    }
+
+    .intro-copy {
+      max-width: 760px;
+    }
+
+    .calc-intro--standalone {
+      margin-top: 26px;
+      max-width: 560px;
+    }
+
+    .statistics-section {
+      scroll-margin-top: 66px;
+    }
+
+    .stat-intro-text {
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 500;
+      margin: 0 0 16px;
+    }
+
+    .telegram { padding-top: 18px; }
+
+      .telegram-panel { padding: 18px; }
+
+      .telegram h2 { font-size: 25px; }
+      .facts-line { font-size: 11px; }
+
+      .footer {
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 18px;
+      }
+
+      .faq-item {
+        padding: 0;
+      }
+
+      .faq-question {
+        font-size: 14px;
+        padding: 16px 14px;
+      }
+
+      .faq-answer {
+        font-size: 12px;
+        padding: 0 14px 16px;
+      }
+
+    }
+  
+
+    /* Variant 2: calculator as the main hero */
+    .calc-hero {
+      min-height: calc(100svh - 54px);
+      display: block;
+      padding-top: 56px;
+      padding-bottom: 34px;
+    }
+
+    .calc-hero__head {
+      max-width: 900px;
+      padding-bottom: 22px;
+    }
+
+    .calc-hero__head .lead {
+      max-width: 660px;
+      margin-top: 16px;
+    }
+
+    .calc-hero__subhead {
+      display: grid;
+      grid-template-columns: 1fr minmax(260px, 430px);
+      gap: 28px;
+      align-items: end;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      margin: 8px 0 18px;
+    }
+
+    .calc-hero__subhead .section-title {
+      margin-bottom: 0;
+    }
+
+    .calc-hero .calculator {
+      width: 100%;
+      box-shadow: 0 18px 42px rgba(11, 15, 25, .06);
+    }
+
+    .calculator-section.variant2-source {
+      padding-top: 0;
+    }
+
+    @media (max-width: 900px) {
+      .calc-hero {
+        min-height: auto;
+        padding-top: 34px;
+      }
+      .calc-hero__subhead {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .calc-hero {
+        min-height: auto;
+        padding-top: 22px;
+        padding-bottom: 12px;
+      }
+      .calc-hero__head {
+        padding-bottom: 16px;
+      }
+      .calc-hero__subhead {
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .statistics-section {
+        padding-top: 18px;
+      }
+    }
+
+    @media (max-width: 640px) and (orientation: portrait) {
+      .calc-hero {
+        min-height: auto;
+      }
+      .statistics-section {
+        padding-top: 16px;
+      }
+    }
+
+    .calc-hero__head h1 {
+      max-width: 820px;
+      margin-bottom: 0;
+    }
+
+
+    .institutional-calc {
+      display: grid;
+      grid-template-columns: 42% 58%;
+      min-height: 0;
+    }
+
+    .institutional-calc .calc-left,
+    .institutional-calc .calc-right { min-width: 0; }
+
+    .source-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--line);
+      background: #F8F4EC;
+      margin-bottom: 16px;
+    }
+
+    .source-strip--single {
+      grid-template-columns: 1fr;
+    }
+
+    .source-item {
+      padding: 12px 12px;
+      border-right: 1px solid var(--line);
+    }
+
+    .source-item:last-child { border-right: 0; }
+
+    .source-strip--single .source-item { border-right: 0; }
+
+    .source-label {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+
+    .source-value {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      white-space: nowrap;
+    }
+
+    .calc-action {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--accent-dark);
+      background: var(--accent-dark);
+      color: var(--panel);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .calc-action:disabled {
+      opacity: .72;
+      cursor: wait;
+    }
+
+    .risk-card {
+      border: 1px solid var(--line);
+      background: #F8F4EC;
+      padding: 16px;
+      margin-top: 14px;
+    }
+
+    .risk-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+      margin-bottom: 10px;
+    }
+
+    .risk-comment {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .risk-comment + .risk-comment { margin-top: 10px; }
+    .risk-comment p + p { margin-top: 9px; }
+
+    .risk-guidance {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 18px;
+    }
+
+    .risk-guidance__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .risk-guidance__item {
+      min-height: 100%;
+      border: 1px solid var(--line);
+      background: #F8F4EC;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .risk-guidance__item strong {
+      display: block;
+      color: var(--text);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .risk-guidance__note {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--accent-dark);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .status-line {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .status-line.ok { color: var(--accent-dark); }
+    .status-line.err { color: #7A1F1F; }
+
+    .status-soft { color: var(--accent-dark); }
+    .status-watch { color: #8A6A2F; }
+    .status-alert { color: #8A4F2F; }
+    .status-critical { color: #7A1F1F; }
+    .status-empty { color: var(--muted); }
+
+    #recoveryValue.status-critical,
+    #recoveryValue.status-alert {
+      font-size: clamp(14px, 1.5vw, 22px);
+      line-height: 1.05;
+      white-space: nowrap;
+      max-width: none;
+    }
+
+
+    @media (max-width: 900px) {
+      .risk-guidance__grid { grid-template-columns: 1fr; }
+      .institutional-calc { grid-template-columns: 1fr; }
+      .source-strip { grid-template-columns: repeat(2, 1fr); }
+      .source-strip.source-strip--single { grid-template-columns: 1fr; }
+      .source-item:nth-child(2) { border-right: 0; }
+      .source-item:nth-child(1), .source-item:nth-child(2) { border-bottom: 1px solid var(--line); }
+    }
+
+    @media (max-width: 640px) {
+      .source-strip { grid-template-columns: 1fr; }
+      .source-item { border-right: 0; border-bottom: 1px solid var(--line); }
+      .source-item:last-child { border-bottom: 0; }
+    }
+
+
+    @media (max-width: 640px) {
+      .result-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+        gap: 8px;
+      }
+
+      .result-value,
+      .result-value.small {
+        width: 100%;
+        max-width: 100%;
+        text-align: right;
+        white-space: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+      }
+
+      .result-value {
+        font-size: clamp(24px, 7.2vw, 30px);
+        line-height: 1;
+      }
+
+      .result-value.small {
+        font-size: clamp(22px, 6.6vw, 28px);
+        line-height: 1;
+      }
+    }
+
+</style>
+</head>
+<body>
+<header class="topbar">
+<div class="topbar__inner">
+<div>ПРАЙМ ИНВЕСТ</div>
+<div class="topbar__center">КАЛЬКУЛЯТОР ВОЗМОЖНОСТЕЙ</div>
+<a class="topbar__right" href="https://t.me/primeinvest777" rel="noopener" target="_blank">@primeinvest777</a>
+</div>
+</header>
+<main class="page"><section aria-label="Калькулятор возможностей" class="calc-hero section">
+<div class="calc-hero__head">
+<h1>СКОЛЬКО МОГУТ ЗАРАБАТЫВАТЬ ВАШИ ДЕНЬГИ?</h1>
+</div>
+<div class="calc-hero__subhead">
+  <div><h2 class="section-title">РАССЧИТАЙТЕ СВОЙ СЦЕНАРИЙ</h2></div>
+  <p class="section-head__text" id="scenarioSubhead">Расчёт строится по зафиксированному среднемесячному показателю и показывает концентрацию суммы участия относительно капитала.</p>
+</div>
+<div class="calculator institutional-calc">
+  <div class="calc-left">
+    <div class="tabs" aria-label="Сценарии расчёта">
+      <button class="tab active" type="button" data-tab="investor">ИНВЕСТОР</button>
+      <button class="tab" type="button" data-tab="partner">ПАРТНЁР</button>
+      <button class="tab" type="button" data-tab="goal">ЦЕЛЬ</button>
+    </div>
+    <div class="calc-panel active" id="investorPanel">
+      <p class="hint">Укажите свои цифры — калькулятор покажет плановый результат и поможет понять, насколько такой сценарий вам подходит.</p>
+      <div class="field">
+        <label for="freeCapital">Свободный инвестиционный капитал, $</label>
+        <input id="freeCapital" type="number" min="0" step="100" value="10000" data-calc="risk">
+        <div class="chips" data-target="freeCapital"><button class="chip">1000</button><button class="chip">3000</button><button class="chip active">10000</button><button class="chip">30000</button><button class="chip">100000</button></div>
+      </div>
+      <div class="field">
+        <label for="participationAmount">Сумма участия, $</label>
+        <input id="participationAmount" type="number" min="0" step="100" value="1000" data-calc="risk">
+        <div class="chips" data-target="participationAmount"><button class="chip">500</button><button class="chip active">1000</button><button class="chip">2000</button><button class="chip">3000</button><button class="chip">10000</button></div>
+      </div>
+      <div class="field">
+        <label for="monthlyIncome">Регулярный доход в месяц, $</label>
+        <input id="monthlyIncome" type="number" min="0" step="100" value="2000" data-calc="risk">
+        <div class="chips" data-target="monthlyIncome"><button class="chip">500</button><button class="chip">1000</button><button class="chip active">2000</button><button class="chip">3000</button><button class="chip">5000</button></div>
+      </div>
+      <div class="field">
+        <label for="monthlyExpenses">Обязательные расходы в месяц, $</label>
+        <input id="monthlyExpenses" type="number" min="0" step="100" value="1000" data-calc="risk">
+        <div class="chips" data-target="monthlyExpenses"><button class="chip">500</button><button class="chip active">1000</button><button class="chip">2000</button><button class="chip">3000</button><button class="chip">5000</button></div>
+      </div>
+      <div class="field">
+        <label for="monthlyContribution">Плановое пополнение в месяц, $</label>
+        <input id="monthlyContribution" type="number" min="0" step="100" value="0" data-calc="risk">
+        <div class="chips" data-target="monthlyContribution"><button class="chip active">0</button><button class="chip">100</button><button class="chip">300</button><button class="chip">500</button><button class="chip">1000</button></div>
+      </div>
+      <div class="field">
+        <label for="scenarioMonths">Срок, месяцев</label>
+        <input id="scenarioMonths" type="number" min="1" step="1" value="12" data-calc="risk">
+        <div class="chips" data-target="scenarioMonths"><button class="chip">6</button><button class="chip active">12</button><button class="chip">24</button><button class="chip">36</button><button class="chip">60</button></div>
+      </div>
+    </div>
+    <div class="calc-panel" id="partnerPanel">
+      <p class="hint">Укажите количество партнёров и средний депозит, чтобы увидеть общий депозит и потенциальный диапазон начислений.</p>
+      <div class="field">
+        <label for="partnerCount">Количество партнёров</label>
+        <input id="partnerCount" type="number" min="0" step="1" value="10">
+        <div class="chips" data-target="partnerCount"><button class="chip">1</button><button class="chip">3</button><button class="chip">5</button><button class="chip active">10</button><button class="chip">20</button><button class="chip">50</button><button class="chip">100</button></div>
+      </div>
+      <div class="field">
+        <label for="partnerCapital">Средний депозит, $</label>
+        <input id="partnerCapital" type="number" min="0" step="100" value="1000">
+        <div class="chips" data-target="partnerCapital"><button class="chip">100</button><button class="chip">300</button><button class="chip">500</button><button class="chip active">1000</button><button class="chip">5000</button><button class="chip">10000</button></div>
+      </div>
+    </div>
+    <div class="calc-panel" id="goalPanel">
+      <p class="hint">Укажите желаемый доход в месяц. Сайт рассчитает, какой капитал математически нужен при зафиксированном среднемесячном показателе.</p>
+      <div class="field">
+        <label for="targetIncome">Желаемый доход в месяц, $</label>
+        <input id="targetIncome" type="number" min="0" step="100" value="1000">
+        <div class="chips" data-target="targetIncome"><button class="chip">100</button><button class="chip">300</button><button class="chip">500</button><button class="chip active">1000</button><button class="chip">3000</button><button class="chip">5000</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="calc-right">
+    <div class="status-line" id="monitoringStatus">Среднемесячный показатель для расчёта: 4,32%. Зафиксирован вручную по состоянию на 07.07.2026.</div>
+    <div class="result-grid">
+      <div class="result-row"><span class="result-label" id="resultLabel1">Доля участия от свободного капитала</span><span class="result-value small" id="concentrationValue">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel2">Срок восстановления суммы</span><span class="result-value small" id="recoveryValue">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel3">Итоговый капитал по модели</span><span class="result-value" id="scenarioFinal">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel4">Модельный результат</span><span class="result-value small" id="scenarioProfit">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel5">Уровень концентрации</span><span class="result-value small" id="riskLevel">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel6">Оценка</span><span class="result-value small" id="riskValue">—</span></div>
+    </div>
+    <div class="risk-card" id="scenarioReviewCard">
+      <div class="risk-title">Разбор сценария</div>
+      <div class="risk-comment" id="scenarioReview"></div>
+    </div>
+  </div>
+</div>
+<div class="risk-guidance" id="riskGuidance" aria-label="Как читать результат оценки">
+  <div class="risk-title">Как читать результат оценки</div>
+  <div class="risk-guidance__grid">
+    <div class="risk-guidance__item"><strong>Низкий риск</strong>Подходит для спокойной проверки механики участия. Сумма не создаёт заметной нагрузки на капитал и позволяет посмотреть, как работает счёт, копирование, пополнение, вывод и контроль результата.</div>
+    <div class="risk-guidance__item"><strong>Умеренный риск</strong>Можно рассматривать как рабочий сценарий. Сумма уже имеет значение, но остаётся в управляемых рамках относительно капитала, доходов и свободного денежного потока.</div>
+    <div class="risk-guidance__item"><strong>Повышенный риск</strong>Лучше рассматривать поэтапно. Такой сценарий требует большей дисциплины: разумнее снизить стартовую сумму, проверить механику меньшим объёмом и только потом увеличивать участие.</div>
+    <div class="risk-guidance__item"><strong>Высокий / критический риск</strong>Сценарий требует осторожности. На старте лучше снизить нагрузку, выбрать меньшую сумму участия или вернуться к более умеренному варианту расчёта.</div>
+  </div>
+</div>
+</section><section aria-label="Публичная статистика" class="statistics-section section"><div class="section-head statistics-head">
+<div>
+<h2 class="section-title">ПРОВЕРКА ЧЕРЕЗ ПУБЛИЧНЫЙ МОНИТОРИНГ</h2>
+</div>
+</div>
+<div class="report-panel monitor">
+<div class="panel-head">
+<span>ПУБЛИЧНАЯ СТАТИСТИКА</span>
+<span>LIVE MONITORING</span>
+</div>
+<div aria-label="Показатели мониторинга" class="metrics">
+<div class="metric">
+<span class="metric__label">Начало</span>
+<span class="metric__value">09.03.25</span>
+</div>
+<div class="metric">
+<span class="metric__label">Сделок</span>
+<span class="metric__value">1000+</span>
+</div>
+<div class="metric">
+<span class="metric__label">Год</span>
+<span class="metric__value">+82.69%</span>
+</div>
+<div class="metric">
+<span class="metric__label">Формат</span>
+<span class="metric__value">Public</span>
+</div>
+</div>
+<div class="monitor-links">
+<a class="button stat-button" href="https://www.myfxbook.com/members/Alien987/manticore1/11405960" rel="noopener" target="_blank">ПОСМОТРЕТЬ СТАТИСТИКУ →</a>
+<p class="monitor-copy">Счёт отражает работу системы и её результаты, а не общий подключённый капитал.</p>
+</div>
+</div>
+</section><section aria-label="FAQ Прайм Инвест" class="faq-section section" id="faq">
+<div class="section-head faq-head">
+<div>
+<div class="kicker">FAQ</div>
+<h2 class="section-title">Вопросы и ответы</h2>
+</div>
+<p class="section-head__text">Ключевые вопросы по системе, рискам, деньгам участников, партнёрскому направлению и формату подключения.</p>
+</div>
+<div class="faq-panel">
+<details class="faq-item"><summary class="faq-question">1. Что такое Прайм Инвест?</summary><div class="faq-answer">
+<p>Прайм Инвест — это система работы с капиталом, которая объединяет команду трейдеров, копирование сделок на личные счета участников и партнёрское направление.</p>
+<p>Участник может использовать систему в двух форматах: для создания личного капитала или для развития партнёрского дохода.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">2. Прайм Инвест — это инвестиционный фонд?</summary><div class="faq-answer">
+<p>Нет.</p>
+<p>Прайм Инвест не является инвестиционным фондом, управляющей компанией, брокером или инвестиционной платформой.</p>
+<p>Мы не принимаем деньги участников, не храним их и не управляем ими напрямую.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">3. Как участник зарабатывает на своём капитале?</summary><div class="faq-answer">
+<p>Участник открывает личный счёт у брокера, пополняет его и подключает копирование сделок.</p>
+<p>После подключения сделки трейдера автоматически копируются на счёт участника.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">4. Где находятся деньги участника?</summary><div class="faq-answer">
+<p>Деньги участника находятся на его личном счёте у брокера.</p>
+<p>Участник самостоятельно пополняет счёт, отслеживает баланс и операции, а также самостоятельно оформляет вывод средств через личный кабинет брокера.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">5. Что такое брокер и брокерская инфраструктура?</summary><div class="faq-answer">
+<p>Брокер — это компания, через которую участник открывает торговый счёт, пополняет его, выводит средства и подключает копирование сделок.</p>
+<p>Брокерская инфраструктура — это личный кабинет участника, торговый счёт, пополнение, вывод средств, история операций, копирование сделок и начисления по партнёрской программе.</p>
+<p>Именно через брокера проходят все финансовые и технические операции. Мы не создаём отдельный внутренний баланс, не принимаем деньги участников и не заменяем брокера.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">6. Прайм Инвест принимает деньги клиентов?</summary><div class="faq-answer">
+<p>Нет.</p>
+<p>Мы не принимаем деньги на карты, личные счета, криптокошельки или внутренние балансы.</p>
+<p>Все финансовые операции проходят через брокера и личный кабинет участника.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">7. Нужно ли самому разбираться в трейдинге?</summary><div class="faq-answer">
+<p>Нет, для подключения не требуется самостоятельно торговать или анализировать рынок.</p>
+<p>Но важно понимать базовые вещи: где находится счёт, как работает копирование, какие есть риски и как отслеживать результат.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">8. Кто торгует?</summary><div class="faq-answer">
+<p>В основе системы — работа команды трейдеров Прайм Инвест.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">9. Можно ли к вам попасть трейдером?</summary><div class="faq-answer">
+<p>Да, мы открыты к рассмотрению трейдеров.</p>
+<p>Мы ориентируемся на профессиональные стандарты, принятые в зрелой инвестиционной среде: проверяемость данных, прозрачность статистики, контроль рисков, дисциплина исполнения и устойчивость торгового подхода.</p>
+<p>Для рассмотрения трейдера важны:</p>
+<p>— реальный торговый счёт;<br>— открытая и проверяемая статистика;<br>— достаточная торговая история;<br>— понятная торговая система;<br>— контроль рисков и просадок;<br>— собственный капитал трейдера в работе;<br>— готовность к наблюдательному периоду;<br>— спокойная профессиональная коммуникация;<br>— готовность работать по единым правилам команды.</p>
+<p>Нас интересует способность трейдера подтверждать результат фактическими данными, сохранять управляемость риска и проходить разные рыночные периоды в рамках понятной торговой системы.</p>
+<p>Если трейдер разделяет такой подход к работе, мы можем рассмотреть формат сотрудничества.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">10. Где можно посмотреть результаты?</summary><div class="faq-answer">
+<p>Результаты можно посмотреть через публичную статистику.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">11. Доходность гарантирована?</summary><div class="faq-answer">
+<p>Нет.</p>
+<p>Доходность не гарантируется. Любая торговля на финансовых рынках связана с риском.</p>
+<p>Прошлый результат не является гарантией будущей прибыли.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">12. Какие есть риски?</summary><div class="faq-answer">
+<p>Основные риски связаны с торговлей на финансовых рынках: возможны просадки, убыточные периоды, изменение рыночных условий, технические сбои на стороне брокера или платформы копирования.</p>
+<p>Также существуют операционные риски: ошибки при регистрации, пополнении, выводе средств или настройке счёта.</p>
+<p>Поэтому перед подключением важно понимать механику системы, допустимый уровень риска и не использовать капитал, потеря которого критична для жизни, семьи или бизнеса.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">13. Как понять допустимый уровень риска?</summary><div class="faq-answer">
+<p>Допустимый уровень риска зависит от личной финансовой ситуации участника.</p>
+<p>Нужно учитывать:</p>
+<p>— размер свободного капитала;<br>— наличие финансовой подушки;<br>— регулярный доход;<br>— обязательные расходы;<br>— долговую нагрузку;<br>— семейную ситуацию;<br>— срок участия;<br>— психологическую готовность к просадкам.</p>
+<p>К участию стоит направлять только тот капитал, временная просадка или частичная потеря которого не приведёт к критичным последствиям для жизни, семьи или бизнеса.</p>
+<p>Если для подключения нужно использовать последние деньги, кредитные средства или деньги, которые понадобятся в ближайшее время, риск для участника слишком высокий.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">14. Можно ли потерять деньги?</summary><div class="faq-answer">
+<p>Да, риск убытков существует.</p>
+<p>Поэтому один из важных принципов развития системы — диверсификация торговли: подключение нескольких трейдеров, работающих независимо друг от друга, со своими стратегиями и собственным капиталом.</p>
+<p>Сейчас подключение идёт к одному трейдеру. В перспективе система должна развиваться через подключение нескольких трейдеров и нескольких торговых стратегий, чтобы результат участника не зависел от одной точки опоры.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">15. Что будет, если ваши трейдеры потеряют деньги?</summary><div class="faq-answer">
+<p>Убыток отразится на счетах участников, подключённых к копированию.</p>
+<p>Такой риск существует на финансовых рынках, поэтому мы не обещаем отсутствие убытков и не гарантируем доходность.</p>
+<p>Смысл системы — не в отрицании риска, а в его управлении: отбор трейдеров, контроль просадок, публичная статистика и развитие диверсификации торговли.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">16. С какой суммы можно начать?</summary><div class="faq-answer">
+<p>Подключение возможно от 100 долларов.</p>
+<p>Но 100 долларов — это минимальный технический вход, а не капитал, который способен давать значимый финансовый результат.</p>
+<p>Капитал создаётся не разовым пополнением, а системной работой: человек регулярно пополняет счёт, увеличивает базу капитала, не выводит прибыль раньше времени и даёт капиталу время на рост.</p>
+<p>Если ваша цель — получать ощутимый доход от капитала, нужно заранее понимать требуемый размер капитала, срок, план пополнений и допустимый уровень риска.</p>
+<p>Эти параметры рассчитываются индивидуально.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">17. Что такое партнёрское направление?</summary><div class="faq-answer">
+<p>Партнёрское направление — это возможность приглашать людей в систему и получать партнёрское вознаграждение от брокера.</p>
+<p>Это отдельный сценарий участия для тех, кто хочет не только использовать систему для своего капитала, но и развивать партнёрский доход.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">18. За счёт чего формируется партнёрское вознаграждение?</summary><div class="faq-answer">
+<p>Партнёрское вознаграждение начисляет брокер в рамках своей партнёрской программы.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">19. Обязательно ли приглашать людей в систему?</summary><div class="faq-answer">
+<p>Нет.</p>
+<p>Партнёрское направление — это дополнительная возможность, а не обязательное условие участия.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">20. Чем Прайм Инвест отличается от финансовой пирамиды?</summary><div class="faq-answer">
+<p>В финансовой пирамиде выплаты участникам обычно зависят от поступления денег новых участников.</p>
+<p>В Прайм Инвест такой механики нет. Деньги участников находятся на их личных брокерских счетах. Мы не принимаем депозиты, не собираем деньги и не распределяем выплаты между участниками.</p>
+<p>Партнёрские начисления формируются брокером по условиям его партнёрской программы.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">21. Можно ли просто зарегистрироваться и начать самому?</summary><div class="faq-answer">
+<p>Технически — да.</p>
+<p>Но для корректной работы системы регистрация должна проходить по партнёрской ссылке с инструкциями.</p>
+<p>Если зарегистрироваться в RoboForex самостоятельно и не попасть в партнёрскую ветку, партнёрская программа и подключение к копированию будут работать некорректно.</p>
+<p>Так устроена программа копирования сделок у брокера. Поэтому перед регистрацией важно получить корректную партнёрскую ссылку и инструкции.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">22. Если Прайм Инвест не принимает деньги, на чём зарабатывает команда?</summary><div class="faq-answer">
+<p>Важно разделять несколько вещей.</p>
+<p>Трейдеры зарабатывают на торговом результате и комиссиях с прибыльных сделок участников, подключённых к копированию.</p>
+<p>Партнёры системы зарабатывают на партнёрской программе брокера.</p>
+<p>При этом для брокера не существует отдельной финансовой структуры под названием Прайм Инвест. Есть участники, счета, партнёрские связи, копирование сделок и условия брокера.</p>
+<p>Прайм Инвест — это наша система организации, отбора трейдеров, сопровождения участников и развития партнёрского направления. Но деньги, счета, начисления и копирование находятся в инфраструктуре брокера.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">23. Почему вы говорите о рисках, если система работает?</summary><div class="faq-answer">
+<p>Потому что в финансовых рынках риск существует всегда.</p>
+<p>Система Прайм Инвест построена не на обещаниях без риска, а на прозрачной механике: личный счёт участника, публичная статистика, копирование сделок и партнёрская программа брокера.</p>
+</div></details>
+<details class="faq-item"><summary class="faq-question">24. Это пассивный доход?</summary><div class="faq-answer">
+<p>С точки зрения участия в торговле — да: участник не торгует самостоятельно, а подключает копирование сделок.</p>
+<p>Но это не гарантированный доход и не инструмент без риска.</p>
+<p>Корректнее рассматривать это как формат участия в финансовом результате команды трейдеров через копирование сделок на личный счёт.</p>
+</div></details>
+</div>
+</section><section aria-label="Telegram" class="telegram">
+<div class="telegram-panel">
+<div>
+<h2>ЗАПИШИТЕСЬ НА ПЕРСОНАЛЬНУЮ ПРЕЗЕНТАЦИЮ ВОЗМОЖНОСТЕЙ ПРАЙМ ИНВЕСТ</h2>
+<div class="facts-line">Ответы на вопросы • Индивидуальный разбор сценария • Подбор подходящего формата участия</div>
+</div>
+<div class="tg-box">
+<a class="button" href="https://t.me/petliy?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D0%B0%D1%82%D1%8C%D1%81%D1%8F%20%D0%BD%D0%B0%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BF%D1%80%D0%B5%D0%B7%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8E%20%D0%B2%D0%BE%D0%B7%D0%BC%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B5%D0%B9%20%D0%9F%D1%80%D0%B0%D0%B9%D0%BC%20%D0%98%D0%BD%D0%B2%D0%B5%D1%81%D1%82" rel="noopener" target="_blank">ЗАПИСАТЬСЯ НА ПРЕЗЕНТАЦИЮ →</a>
+</div>
+</div>
+</section><footer class="footer">
+<span>ПРАЙМ ИНВЕСТ</span>
+<span>ФАКТЫ • ПРОЗРАЧНОСТЬ • ВОЗМОЖНОСТИ</span>
+</footer></main>
+<script>
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => Array.from(document.querySelectorAll(s));
+    const money = (n) => '$' + Math.round(Number.isFinite(n) ? n : 0).toLocaleString('en-US');
+    const pct = (n) => (Number.isFinite(n) ? n.toFixed(2).replace('.', ',') : '0,00') + '%';
+    const strategy = {
+      monthlyRatePercent: 4.32,
+      updatedAt: '07.07.2026'
+    };
+    let monitoringRate = strategy.monthlyRatePercent / 100;
+
+    function value(id) {
+      const el = document.getElementById(id);
+      if (!el) return 0;
+      const n = parseFloat(String(el.value).replace(',', '.'));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function setHTML(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    function setStatusClass(id, status) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('status-soft', 'status-watch', 'status-alert', 'status-critical', 'status-empty');
+      el.classList.add(status || 'status-empty');
+    }
+
+    function concentrationLevel(ratio) {
+      if (!Number.isFinite(ratio) || ratio <= 0) return ['—', null, 'status-empty', 'недостаточно данных'];
+      if (ratio <= 0.05) return ['НИЗКИЙ', 0, 'status-soft', 'низкий уровень концентрации'];
+      if (ratio <= 0.10) return ['УМЕРЕННЫЙ', 1, 'status-soft', 'умеренный уровень концентрации'];
+      if (ratio <= 0.20) return ['ПОВЫШЕННЫЙ', 2, 'status-watch', 'повышенный уровень концентрации'];
+      return ['КРИТИЧЕСКИЙ', 2, 'status-critical', 'критический уровень концентрации'];
+    }
+
+    function recoveryRisk(months) {
+      if (!Number.isFinite(months)) return 100;
+      if (months <= 1) return 10;
+      if (months <= 3) return 25;
+      if (months <= 6) return 45;
+      if (months <= 12) return 70;
+      return 95;
+    }
+
+    function pressureRisk(pressure) {
+      if (!Number.isFinite(pressure)) return 80;
+      if (pressure <= 0) return 0;
+      if (pressure <= 0.20) return 15;
+      if (pressure <= 0.40) return 35;
+      if (pressure < 0.60) return 50;
+      if (pressure < 1) return 75;
+      if (pressure === 1) return 85;
+      return 95;
+    }
+
+    function contributionRiskFloor(freeCashFlow, monthlyContribution, pressure) {
+      if (monthlyContribution <= 0) return null;
+      if (freeCashFlow <= 0) return 82;
+      if (!Number.isFinite(pressure)) return null;
+      if (pressure > 1) return 82;
+      if (pressure === 1) return 65;
+      if (pressure >= 0.60) return 45;
+      return null;
+    }
+
+    function recoveryModifier(months, freeCashFlow) {
+      if (freeCashFlow <= 0 || !Number.isFinite(months)) return 2;
+      if (months <= 1) return -1;
+      if (months <= 3) return 0;
+      if (months <= 6) return 1;
+      if (months <= 12) return 2;
+      return 3;
+    }
+
+    function scenarioRiskRank(baseRank, recoveryMonths, freeCashFlow, monthlyContribution, pressure) {
+      if (!Number.isFinite(baseRank)) return null;
+      let rank = baseRank + recoveryModifier(recoveryMonths, freeCashFlow);
+      if (freeCashFlow <= 0) rank = Math.max(rank, 3);
+      if (monthlyContribution > 0) {
+        if (freeCashFlow <= 0) rank = 4;
+        else if (pressure > 1) rank = 4;
+        else if (pressure === 1) rank = Math.max(rank, 3);
+        else if (pressure >= 0.60) rank = Math.max(rank, 2);
+        else if (pressure >= 0.40) rank = Math.max(rank, 1);
+      }
+      return Math.max(0, Math.min(4, rank));
+    }
+
+    function totalRiskLabel(rank) {
+      if (!Number.isFinite(rank)) return ['—', 'status-empty'];
+      if (rank <= 0) return ['НИЗКИЙ РИСК', 'status-soft'];
+      if (rank === 1) return ['УМЕРЕННЫЙ РИСК', 'status-soft'];
+      if (rank === 2) return ['ПОВЫШЕННЫЙ РИСК', 'status-watch'];
+      if (rank === 3) return ['ВЫСОКИЙ РИСК', 'status-alert'];
+      return ['КРИТИЧЕСКИЙ РИСК', 'status-critical'];
+    }
+
+    function horizonProfile(months) {
+      if (months <= 6) {
+        return 'Срок 6 месяцев — тестовый период. Его удобно использовать, чтобы посмотреть механику участия, движение капитала и первые результаты в личном кабинете.';
+      }
+      if (months <= 12) {
+        return 'Срок 12 месяцев — базовый годовой сценарий. Он уже позволяет увидеть, как выбранная сумма работает на дистанции, а не на одном коротком отрезке.';
+      }
+      if (months <= 24) {
+        return 'Срок 24 месяца — рабочий среднесрочный сценарий. На такой дистанции заметнее раскрывается эффект регулярного роста и плановых пополнений.';
+      }
+      if (months <= 36) {
+        return 'Срок 36 месяцев — стратегический сценарий формирования капитала. Это уже не тест, а полноценная модель постепенного роста.';
+      }
+      return 'Срок 60 месяцев — долгосрочный сценарий. Здесь сильнее всего проявляется эффект сложного процента и накопления результата во времени.';
+    }
+
+    function buildScenarioReview({freeCapital, amount, income, expenses, monthlyContribution, months, freeCashFlow, availableCashFlow, ratio, recoveryMonths, pressure, concentrationText, totalLabel}) {
+      if (!Number.isFinite(ratio) || ratio <= 0) {
+        return '<p>Укажите свободный инвестиционный капитал и сумму участия. Без этих двух значений невозможно оценить концентрацию, восстановляемость суммы и реалистичность участия.</p>';
+      }
+
+      const parts = [];
+      parts.push(`Сумма участия ${money(amount)} составляет ${pct(ratio * 100)} от свободного инвестиционного капитала ${money(freeCapital)}. Это ${concentrationText}.`);
+
+      if (income <= 0) {
+        parts.push('Регулярный доход не указан. В таком сценарии участие нельзя оценивать как устойчивое: источник восстановления суммы не подтверждён.');
+      } else if (freeCashFlow <= 0) {
+        parts.push(`При доходе ${money(income)} и обязательных расходах ${money(expenses)} свободный денежный поток отсутствует. Участие в таком формате выглядит жёстким: сначала стоит стабилизировать бюджет, а не увеличивать финансовую нагрузку.`);
+      } else if (monthlyContribution > 0 && availableCashFlow > 0) {
+        parts.push(`Свободный денежный поток составляет ${money(freeCashFlow)} в месяц. После планового пополнения остаётся ${money(availableCashFlow)}, и от этой суммы срок восстановления составляет примерно ${recoveryMonths.toFixed(1).replace('.', ',')} мес.`);
+      } else if (monthlyContribution > 0 && availableCashFlow <= 0) {
+        parts.push(`Свободный денежный поток составляет ${money(freeCashFlow)} в месяц, но плановое пополнение забирает его полностью или превышает. В таком режиме появляется отрицательный денежный поток: сценарий требует больше денег, чем остаётся после обязательных расходов и пополнения.`);
+      } else {
+        parts.push(`Свободный денежный поток составляет ${money(freeCashFlow)} в месяц. При таком потоке сумма участия восстанавливается примерно за ${recoveryMonths.toFixed(1).replace('.', ',')} мес.`);
+      }
+
+      if (monthlyContribution > 0 && freeCashFlow > 0) {
+        if (pressure > 1) {
+          parts.push(`Плановое пополнение ${money(monthlyContribution)} превышает свободный денежный поток ${money(freeCashFlow)} в месяц. Это означает, что пополнение уже выходит за рамки текущего денежного потока. Такой режим делает сценарий более напряжённым и требует аккуратного снижения нагрузки.`);
+        } else if (pressure === 1) {
+          parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает весь свободный денежный поток. После такого пополнения появляется отрицательный денежный поток для восстановления суммы, поэтому сценарий уже нельзя считать спокойным.`);
+        } else if (pressure >= 0.60) {
+          parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает ${pct(pressure * 100)} свободного месячного потока. Это уже заметная нагрузка: такой режим лучше рассматривать поэтапно и не превращать пополнение в обязательный платёж.`);
+        } else {
+          parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает ${pct(pressure * 100)} свободного месячного потока. Такой режим выглядит более управляемым, чем пополнение всем свободным потоком.`);
+        }
+      } else if (monthlyContribution > 0 && freeCashFlow <= 0) {
+        parts.push('Плановое пополнение указано, но свободный денежный поток не подтверждён. Это означает, что регулярное пополнение будет давить на бюджет, поэтому такой режим нельзя считать устойчивым.');
+      }
+
+      parts.push(horizonProfile(months));
+
+      if (totalLabel === 'НИЗКИЙ РИСК' || totalLabel === 'УМЕРЕННЫЙ РИСК') {
+        parts.push(`Оценка: ${totalLabel.toLowerCase()}. Сценарий ближе к аккуратному тестовому формату: можно проверять механику участия без зависимости от одной точки опоры.`);
+      } else if (totalLabel === 'ПОВЫШЕННЫЙ РИСК') {
+        parts.push('Оценка: повышенный риск. Логика участия возможна, но лучше двигаться поэтапно: снизить стартовую нагрузку, проверить механику и только потом увеличивать участие.');
+      } else if (totalLabel === 'ВЫСОКИЙ РИСК') {
+        parts.push('Оценка: высокий риск. Сценарий выглядит агрессивно: сумма или пополнения слишком сильно завязаны на текущий капитал и денежный поток. Более разумный вариант — снизить сумму участия или заходить поэтапно.');
+      } else {
+        parts.push('Оценка: критический риск. Такой сценарий не выглядит разумным как стартовый формат: сначала стоит снизить сумму участия и вернуться к более умеренному варианту расчёта.');
+      }
+      return parts.map(part => `<p>${part}</p>`).join('');
+    }
+
+    function setLabels(labels) {
+      labels.forEach((label, index) => setText('resultLabel' + (index + 1), label));
+    }
+
+    function setResultOrder(valueIds) {
+      const grid = $('.result-grid');
+      if (!grid) return;
+      valueIds.forEach(id => {
+        const row = document.getElementById(id)?.closest('.result-row');
+        if (row) grid.appendChild(row);
+      });
+    }
+
+    function showResultRows(count) {
+      $$('.result-row').forEach((row, index) => {
+        row.style.display = index < count ? '' : 'none';
+      });
+    }
+
+    function showReviewCard(show) {
+      const card = $('#scenarioReviewCard');
+      if (card) card.style.display = show ? '' : 'none';
+    }
+
+    function moneyRange(min, max) {
+      return money(min) + '–' + money(max);
+    }
+
+    function setInvestorLabels() {
+      setLabels([
+        'Доля участия от свободного капитала',
+        'Срок восстановления суммы',
+        'Итоговый капитал по модели',
+        'Модельный результат',
+        'Уровень концентрации',
+        'Оценка'
+      ]);
+    }
+
+    function setPartnerLabels() {
+      setLabels([
+        'Общий депозит',
+        'Потенциальный доход в месяц',
+        'Потенциальный доход в год',
+        '',
+        '',
+        ''
+      ]);
+    }
+
+    function setGoalLabels() {
+      setLabels([
+        'Желаемый доход в месяц',
+        'Необходимый капитал',
+        'Среднемесячный показатель',
+        '',
+        '',
+        ''
+      ]);
+    }
+
+    function updateReviewTitle(title) {
+      const card = $('#scenarioReviewCard');
+      const titleEl = card?.querySelector('.risk-title');
+      if (titleEl) titleEl.textContent = title;
+    }
+
+    function showGuidance(show) {
+      const block = $('#riskGuidance');
+      if (block) block.style.display = show ? '' : 'none';
+    }
+
+    function setScenarioSubhead(tab) {
+      const texts = {
+        investor: 'Расчёт строится по зафиксированному среднемесячному показателю и показывает концентрацию суммы участия относительно капитала.',
+        partner: 'Расчёт показывает ориентир партнёрского дохода на основе количества партнёров и среднего депозита.',
+        goal: 'Расчёт показывает, какой капитал нужен для выхода на выбранный ежемесячный доход по текущей модели.'
+      };
+      setText('scenarioSubhead', texts[tab] || texts.investor);
+    }
+
+    function calculateInvestorScenario() {
+      setScenarioSubhead('investor');
+      setInvestorLabels();
+      setResultOrder(['concentrationValue', 'riskLevel', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskValue']);
+      showResultRows(6);
+      showReviewCard(true);
+      updateReviewTitle('Разбор сценария');
+      showGuidance(true);
+      setText('monitoringStatus', `Среднемесячный показатель для расчёта: ${pct(strategy.monthlyRatePercent)}. Зафиксирован вручную по состоянию на ${strategy.updatedAt}.`);
+      const freeCapital = value('freeCapital');
+      const amount = value('participationAmount');
+      const income = value('monthlyIncome');
+      const expenses = value('monthlyExpenses');
+      const monthlyContribution = value('monthlyContribution');
+      const months = Math.max(1, value('scenarioMonths'));
+      const freeCashFlow = income - expenses;
+      const availableCashFlow = freeCashFlow - monthlyContribution;
+      const ratio = freeCapital > 0 ? amount / freeCapital : NaN;
+      const recoveryMonths = availableCashFlow > 0 ? amount / availableCashFlow : NaN;
+      const pressure = freeCashFlow > 0 ? monthlyContribution / freeCashFlow : NaN;
+      const [concentrationLabel, concentrationRank, concentrationStatus, concentrationText] = concentrationLevel(ratio);
+      const hasBaseData = freeCapital > 0 && amount > 0;
+      const totalRank = hasBaseData ? scenarioRiskRank(concentrationRank, recoveryMonths, freeCashFlow, monthlyContribution, pressure) : NaN;
+      const [totalLabel, totalStatus] = totalRiskLabel(totalRank);
+
+      setText('concentrationValue', Number.isFinite(ratio) && ratio > 0 ? pct(ratio * 100) : '—');
+      let recoveryDisplay = '—';
+      let recoveryStatus = 'status-empty';
+      if (Number.isFinite(recoveryMonths)) {
+        recoveryDisplay = recoveryMonths.toFixed(1).replace('.', ',') + ' мес.';
+        recoveryStatus = recoveryMonths <= 3 ? 'status-soft' : recoveryMonths <= 6 ? 'status-watch' : recoveryMonths <= 12 ? 'status-alert' : 'status-critical';
+      } else if ((income > 0 || expenses > 0 || monthlyContribution > 0) && availableCashFlow <= 0) {
+        recoveryDisplay = 'ОТСУТСТВУЕТ';
+        recoveryStatus = 'status-critical';
+      }
+      setText('recoveryValue', recoveryDisplay);
+      setStatusClass('recoveryValue', recoveryStatus);
+      setText('riskLevel', concentrationLabel);
+      setText('riskValue', totalLabel);
+      setStatusClass('riskLevel', concentrationStatus);
+      setStatusClass('riskValue', totalStatus);
+      const commentData = {freeCapital, amount, income, expenses, monthlyContribution, months, freeCashFlow, availableCashFlow, ratio, recoveryMonths, pressure, concentrationText, totalLabel};
+      setHTML('scenarioReview', buildScenarioReview(commentData));
+
+      let capital = amount;
+      for (let i = 0; i < months; i++) {
+        capital = capital * (1 + monitoringRate) + monthlyContribution;
+      }
+      const invested = amount + monthlyContribution * months;
+      setText('scenarioFinal', amount > 0 ? money(capital) : '—');
+      setText('scenarioProfit', amount > 0 ? money(capital - invested) : '—');
+    }
+
+    function calculatePartnerScenario() {
+      setScenarioSubhead('partner');
+      setPartnerLabels();
+      setResultOrder(['concentrationValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskLevel', 'riskValue']);
+      showResultRows(3);
+      showReviewCard(false);
+      showGuidance(false);
+      setText('monitoringStatus', 'Партнёрские начисления зависят от фактических условий брокера, количества совершённых сделок, активности участников, пополнений и подключённых депозитов. Расчёт показывает ориентир диапазона.');
+      ['concentrationValue','recoveryValue','scenarioFinal'].forEach(id => setStatusClass(id, 'status-empty'));
+      const count = value('partnerCount');
+      const avgCapital = value('partnerCapital');
+      const totalDeposit = count * avgCapital;
+      const monthlyMin = totalDeposit * 0.01;
+      const monthlyMax = totalDeposit * 0.03;
+      const yearlyMin = monthlyMin * 12;
+      const yearlyMax = monthlyMax * 12;
+      setText('concentrationValue', totalDeposit > 0 ? money(totalDeposit) : '—');
+      setText('recoveryValue', totalDeposit > 0 ? moneyRange(monthlyMin, monthlyMax) : '—');
+      setText('scenarioFinal', totalDeposit > 0 ? moneyRange(yearlyMin, yearlyMax) : '—');
+      setText('scenarioProfit', '—');
+      setText('riskLevel', '—');
+      setText('riskValue', '—');
+      setStatusClass('riskLevel', 'status-empty');
+      setStatusClass('riskValue', 'status-empty');
+      setHTML('scenarioReview', '');
+    }
+
+    function calculateGoalScenario() {
+      setScenarioSubhead('goal');
+      setGoalLabels();
+      setResultOrder(['concentrationValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskLevel', 'riskValue']);
+      showResultRows(3);
+      showReviewCard(false);
+      showGuidance(false);
+      setText('monitoringStatus', `Целевой расчёт строится по зафиксированному среднемесячному показателю ${pct(strategy.monthlyRatePercent)}.`);
+      const target = value('targetIncome');
+      const required = monitoringRate > 0 ? target / monitoringRate : NaN;
+      setText('concentrationValue', target > 0 ? money(target) : '—');
+      setText('recoveryValue', Number.isFinite(required) && required > 0 ? money(required) : '—');
+      setText('scenarioFinal', pct(strategy.monthlyRatePercent));
+      setText('scenarioProfit', '—');
+      setText('riskLevel', '—');
+      setText('riskValue', '—');
+      setStatusClass('riskLevel', 'status-empty');
+      setStatusClass('riskValue', 'status-empty');
+      setHTML('scenarioReview', '');
+    }
+
+    function activeTab() {
+      return document.querySelector('.tab.active')?.dataset.tab || 'investor';
+    }
+
+    function calculateScenario() {
+      const tab = activeTab();
+      if (tab === 'partner') return calculatePartnerScenario();
+      if (tab === 'goal') return calculateGoalScenario();
+      return calculateInvestorScenario();
+    }
+
+    $$('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        $$('.tab').forEach(item => item.classList.toggle('active', item === tab));
+        $$('.calc-panel').forEach(panel => panel.classList.remove('active'));
+        const panel = document.getElementById(tab.dataset.tab + 'Panel');
+        if (panel) panel.classList.add('active');
+        calculateScenario();
+      });
+    });
+
+    $$('input').forEach(input => input.addEventListener('input', calculateScenario));
+
+    $$('.chips').forEach(group => {
+      group.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip || chip.dataset.step) return;
+        const target = document.getElementById(group.dataset.target);
+        const raw = chip.textContent.trim().replace('%', '');
+        target.value = raw;
+        Array.from(group.children).forEach(c => c.classList && c.classList.toggle('active', c === chip));
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+
+
+
+    calculateScenario();
+  </script>
+</body>
+</html>
