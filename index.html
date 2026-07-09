@@ -1455,7 +1455,8 @@
       <div class="result-row"><span class="result-label" id="resultLabel3">Итоговый капитал по модели</span><span class="result-value" id="scenarioFinal">—</span></div>
       <div class="result-row"><span class="result-label" id="resultLabel4">Модельный результат</span><span class="result-value small" id="scenarioProfit">—</span></div>
       <div class="result-row"><span class="result-label" id="resultLabel5">Уровень концентрации</span><span class="result-value small" id="riskLevel">—</span></div>
-      <div class="result-row"><span class="result-label" id="resultLabel6">Оценка</span><span class="result-value small" id="riskValue">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel6">Финансовая подушка</span><span class="result-value small" id="cushionValue">—</span></div>
+      <div class="result-row"><span class="result-label" id="resultLabel7">Оценка</span><span class="result-value small" id="riskValue">—</span></div>
     </div>
     <div class="risk-card" id="scenarioReviewCard">
       <div class="risk-title">Разбор сценария</div>
@@ -1697,7 +1698,7 @@
       if (ratio <= 0.05) return ['НИЗКИЙ', 0, 'status-soft', 'низкий уровень концентрации'];
       if (ratio <= 0.10) return ['УМЕРЕННЫЙ', 1, 'status-soft', 'умеренный уровень концентрации'];
       if (ratio <= 0.20) return ['ПОВЫШЕННЫЙ', 2, 'status-watch', 'повышенный уровень концентрации'];
-      return ['КРИТИЧЕСКИЙ', 2, 'status-critical', 'критический уровень концентрации'];
+      return ['КРИТИЧЕСКИЙ', 3, 'status-critical', 'критический уровень концентрации'];
     }
 
     function recoveryRisk(months) {
@@ -1720,6 +1721,23 @@
       return 95;
     }
 
+    function cushionStatus(months) {
+      if (!Number.isFinite(months)) return ['—', 'status-empty', 'финансовую подушку в месяцах оценить нельзя'];
+      if (months < 3) return [months.toFixed(1).replace('.', ',') + ' мес.', 'status-critical', 'слабая финансовая подушка'];
+      if (months < 6) return [months.toFixed(1).replace('.', ',') + ' мес.', 'status-alert', 'ограниченная финансовая подушка'];
+      if (months < 12) return [months.toFixed(1).replace('.', ',') + ' мес.', 'status-watch', 'нормальная финансовая подушка'];
+      if (months < 24) return [months.toFixed(1).replace('.', ',') + ' мес.', 'status-soft', 'сильная финансовая подушка'];
+      return [months.toFixed(1).replace('.', ',') + ' мес.', 'status-soft', 'очень сильная финансовая подушка'];
+    }
+
+    function cushionModifier(months) {
+      if (!Number.isFinite(months)) return 0;
+      if (months >= 24) return -1;
+      if (months >= 6) return 0;
+      if (months >= 3) return 1;
+      return 2;
+    }
+
     function contributionRiskFloor(freeCashFlow, monthlyContribution, pressure) {
       if (monthlyContribution <= 0) return null;
       if (freeCashFlow <= 0) return 82;
@@ -1730,26 +1748,74 @@
       return null;
     }
 
-    function recoveryModifier(months, freeCashFlow) {
-      if (freeCashFlow <= 0 || !Number.isFinite(months)) return 2;
-      if (months <= 1) return -1;
-      if (months <= 3) return 0;
-      if (months <= 6) return 1;
-      if (months <= 12) return 2;
-      return 3;
+    function recoveryModifier(months, freeCashFlow, cushionMonths) {
+      if (freeCashFlow > 0 && Number.isFinite(months)) {
+        if (months <= 1) return -1;
+        if (months <= 3) return 0;
+        if (months <= 6) return 1;
+        if (months <= 12) return 1;
+        return 2;
+      }
+      if (freeCashFlow === 0) {
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 24) return 0;
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 12) return 1;
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 6) return 2;
+        return 3;
+      }
+      if (freeCashFlow < 0) {
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 24) return 1;
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 12) return 2;
+        return 3;
+      }
+      return 1;
     }
 
-    function scenarioRiskRank(baseRank, recoveryMonths, freeCashFlow, monthlyContribution, pressure) {
+    function scenarioRiskRank(baseRank, recoveryMonths, freeCashFlow, monthlyContribution, pressure, cushionMonths, ratio, remainingCapital) {
       if (!Number.isFinite(baseRank)) return null;
-      let rank = baseRank + recoveryModifier(recoveryMonths, freeCashFlow);
-      if (freeCashFlow <= 0) rank = Math.max(rank, 3);
-      if (monthlyContribution > 0) {
-        if (freeCashFlow <= 0) rank = 4;
-        else if (pressure > 1) rank = 4;
-        else if (pressure === 1) rank = Math.max(rank, 3);
-        else if (pressure >= 0.60) rank = Math.max(rank, 2);
-        else if (pressure >= 0.40) rank = Math.max(rank, 1);
+      let rank = baseRank + recoveryModifier(recoveryMonths, freeCashFlow, cushionMonths) + cushionModifier(cushionMonths);
+
+      if (freeCashFlow <= 0) {
+        rank = Math.max(rank, baseRank);
       }
+
+      if (Number.isFinite(cushionMonths) && cushionMonths >= 24 && monthlyContribution <= Math.max(freeCashFlow, 0) && freeCashFlow > 0) {
+        if (baseRank <= 1) {
+          rank = 0;
+        } else if (baseRank === 2) {
+          rank = Math.min(rank, 1);
+        } else if (baseRank >= 3) {
+          rank = Math.min(rank, 2);
+        }
+      }
+
+      if (freeCashFlow < 0) {
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 24) rank = Math.max(rank, 2);
+        else if (Number.isFinite(cushionMonths) && cushionMonths >= 12) rank = Math.max(rank, 3);
+        else rank = Math.max(rank, 4);
+      }
+
+      if (monthlyContribution > 0) {
+        const deficitAfterContribution = monthlyContribution - Math.max(freeCashFlow, 0);
+        const burnMonths = deficitAfterContribution > 0 && remainingCapital > 0 ? remainingCapital / deficitAfterContribution : NaN;
+        if (freeCashFlow <= 0 || pressure > 1) {
+          if (Number.isFinite(burnMonths) && burnMonths >= 24) rank = Math.max(rank, 2);
+          else if (Number.isFinite(burnMonths) && burnMonths >= 12) rank = Math.max(rank, 3);
+          else rank = Math.max(rank, 4);
+        } else if (pressure === 1) {
+          rank = Math.max(rank, Number.isFinite(cushionMonths) && cushionMonths >= 24 ? 2 : 3);
+        } else if (pressure >= 0.60) {
+          rank = Math.max(rank, 2);
+        } else if (pressure >= 0.40) {
+          rank = Math.max(rank, 1);
+        }
+      }
+
+      if (Number.isFinite(ratio)) {
+        if (ratio >= 0.50) rank = Math.max(rank, 3);
+        else if (ratio >= 0.35) rank = Math.max(rank, 3);
+        else if (ratio >= 0.20) rank = Math.max(rank, 2);
+      }
+
       return Math.max(0, Math.min(4, rank));
     }
 
@@ -1778,7 +1844,7 @@
       return 'Срок 60 месяцев — долгосрочный сценарий. Здесь сильнее всего проявляется эффект сложного процента и накопления результата во времени.';
     }
 
-    function buildScenarioReview({freeCapital, amount, income, expenses, monthlyContribution, months, freeCashFlow, availableCashFlow, ratio, recoveryMonths, pressure, concentrationText, totalLabel}) {
+    function buildScenarioReview({freeCapital, amount, income, expenses, monthlyContribution, months, freeCashFlow, availableCashFlow, ratio, recoveryMonths, pressure, concentrationText, cushionMonths, cushionText, totalLabel}) {
       if (!Number.isFinite(ratio) || ratio <= 0) {
         return '<p>Укажите свободный инвестиционный капитал и сумму участия. Без этих двух значений невозможно оценить концентрацию, восстановляемость суммы и реалистичность участия.</p>';
       }
@@ -1786,10 +1852,36 @@
       const parts = [];
       parts.push(`Сумма участия ${money(amount)} составляет ${pct(ratio * 100)} от свободного инвестиционного капитала ${money(freeCapital)}. Это ${concentrationText}.`);
 
+      const remainingCapital = freeCapital - amount;
+      if (expenses > 0 && Number.isFinite(cushionMonths)) {
+        if (cushionMonths >= 24) {
+          parts.push(`После участия вне сценария остаётся ${money(Math.max(remainingCapital, 0))} — примерно на ${cushionMonths.toFixed(1).replace('.', ',')} мес. обязательных расходов. Это ${cushionText}: сценарий не забирает основную базу капитала и выглядит устойчивее с точки зрения личной нагрузки.`);
+        } else if (cushionMonths >= 6) {
+          parts.push(`После участия вне сценария остаётся ${money(Math.max(remainingCapital, 0))} — примерно на ${cushionMonths.toFixed(1).replace('.', ',')} мес. обязательных расходов. Это ${cushionText}: запас есть, и он помогает спокойнее оценивать сценарий.`);
+        } else if (cushionMonths > 0) {
+          parts.push(`После участия вне сценария остаётся ${money(Math.max(remainingCapital, 0))} — примерно на ${cushionMonths.toFixed(1).replace('.', ',')} мес. обязательных расходов. Это ${cushionText}: запас ограничен, поэтому нагрузку сценария стоит оценивать аккуратнее.`);
+        } else {
+          parts.push('После участия свободный капитал вне сценария не остаётся. Финансовая подушка отсутствует, поэтому такой сценарий будет восприниматься значительно жёстче.');
+        }
+      } else {
+        parts.push('Обязательные расходы не указаны, поэтому финансовую подушку в месяцах оценить нельзя. Для более точного разбора стоит указать хотя бы ориентировочный уровень ежемесячных расходов.');
+      }
+
+
       if (income <= 0) {
         parts.push('Регулярный доход не указан. В таком сценарии участие нельзя оценивать как устойчивое: источник восстановления суммы не подтверждён.');
-      } else if (freeCashFlow <= 0) {
-        parts.push(`При доходе ${money(income)} и обязательных расходах ${money(expenses)} свободный денежный поток отсутствует. Участие в таком формате выглядит жёстким: сначала стоит стабилизировать бюджет, а не увеличивать финансовую нагрузку.`);
+      } else if (freeCashFlow === 0) {
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 24) {
+          parts.push(`При доходе ${money(income)} и обязательных расходах ${money(expenses)} свободный денежный поток не сформирован. При этом вне сценария остаётся сильная финансовая подушка, поэтому основная устойчивость здесь создаётся сохранённым капиталом.`);
+        } else {
+          parts.push(`При доходе ${money(income)} и обязательных расходах ${money(expenses)} свободный денежный поток не сформирован. В таком сценарии сумма не восстанавливается из текущего дохода, поэтому важнее смотреть на размер финансовой подушки.`);
+        }
+      } else if (freeCashFlow < 0) {
+        if (Number.isFinite(cushionMonths) && cushionMonths >= 24) {
+          parts.push(`Обязательные расходы выше регулярного дохода, поэтому текущий денежный поток отрицательный. Сильная финансовая подушка смягчает сценарий, но сама модель участия становится более чувствительной к расходам.`);
+        } else {
+          parts.push(`Обязательные расходы выше регулярного дохода, поэтому текущий денежный поток отрицательный. В таком формате участие выглядит напряжённее: сначала важно понимать, за счёт чего будет закрываться ежемесячный дефицит.`);
+        }
       } else if (monthlyContribution > 0 && availableCashFlow > 0) {
         parts.push(`Свободный денежный поток составляет ${money(freeCashFlow)} в месяц. После планового пополнения остаётся ${money(availableCashFlow)}, и от этой суммы срок восстановления составляет примерно ${recoveryMonths.toFixed(1).replace('.', ',')} мес.`);
       } else if (monthlyContribution > 0 && availableCashFlow <= 0) {
@@ -1802,14 +1894,14 @@
         if (pressure > 1) {
           parts.push(`Плановое пополнение ${money(monthlyContribution)} превышает свободный денежный поток ${money(freeCashFlow)} в месяц. Это означает, что пополнение уже выходит за рамки текущего денежного потока. Такой режим делает сценарий более напряжённым и требует аккуратного снижения нагрузки.`);
         } else if (pressure === 1) {
-          parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает весь свободный денежный поток. После такого пополнения появляется отрицательный денежный поток для восстановления суммы, поэтому сценарий уже нельзя считать спокойным.`);
+          parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает весь свободный денежный поток. После такого пополнения не остаётся месячного остатка для восстановления суммы, поэтому оценка сценария становится жёстче.`);
         } else if (pressure >= 0.60) {
           parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает ${pct(pressure * 100)} свободного месячного потока. Это уже заметная нагрузка: такой режим лучше рассматривать поэтапно и не превращать пополнение в обязательный платёж.`);
         } else {
           parts.push(`Плановое пополнение ${money(monthlyContribution)} занимает ${pct(pressure * 100)} свободного месячного потока. Такой режим выглядит более управляемым, чем пополнение всем свободным потоком.`);
         }
       } else if (monthlyContribution > 0 && freeCashFlow <= 0) {
-        parts.push('Плановое пополнение указано, но свободный денежный поток не подтверждён. Это означает, что регулярное пополнение будет давить на бюджет, поэтому такой режим нельзя считать устойчивым.');
+        parts.push('Плановое пополнение указано при отсутствии свободного денежного потока. Такой режим опирается не на текущий месячный остаток, а на запас капитала, поэтому оценка сценария становится жёстче.');
       }
 
       parts.push(horizonProfile(months));
@@ -1854,15 +1946,20 @@
       return money(min) + '–' + money(max);
     }
 
+    function setLabelByValueId(valueId, label) {
+      const row = document.getElementById(valueId)?.closest('.result-row');
+      const labelEl = row?.querySelector('.result-label');
+      if (labelEl) labelEl.textContent = label;
+    }
+
     function setInvestorLabels() {
-      setLabels([
-        'Доля участия от свободного капитала',
-        'Срок восстановления суммы',
-        'Итоговый капитал по модели',
-        'Модельный результат',
-        'Уровень концентрации',
-        'Оценка'
-      ]);
+      setLabelByValueId('concentrationValue', 'Доля участия от свободного капитала');
+      setLabelByValueId('riskLevel', 'Уровень концентрации');
+      setLabelByValueId('cushionValue', 'Финансовая подушка');
+      setLabelByValueId('recoveryValue', 'Срок восстановления суммы');
+      setLabelByValueId('scenarioFinal', 'Итоговый капитал по модели');
+      setLabelByValueId('scenarioProfit', 'Модельный результат');
+      setLabelByValueId('riskValue', 'Оценка');
     }
 
     function setPartnerLabels() {
@@ -1870,6 +1967,7 @@
         'Общий депозит',
         'Потенциальный доход в месяц',
         'Потенциальный доход в год',
+        '',
         '',
         '',
         ''
@@ -1881,6 +1979,7 @@
         'Желаемый доход в месяц',
         'Необходимый капитал',
         'Среднемесячный показатель',
+        '',
         '',
         '',
         ''
@@ -1911,8 +2010,8 @@
     function calculateInvestorScenario() {
       setScenarioSubhead('investor');
       setInvestorLabels();
-      setResultOrder(['concentrationValue', 'riskLevel', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskValue']);
-      showResultRows(6);
+      setResultOrder(['concentrationValue', 'riskLevel', 'cushionValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskValue']);
+      showResultRows(7);
       showReviewCard(true);
       updateReviewTitle('Разбор сценария');
       showGuidance(true);
@@ -1928,12 +2027,17 @@
       const ratio = freeCapital > 0 ? amount / freeCapital : NaN;
       const recoveryMonths = availableCashFlow > 0 ? amount / availableCashFlow : NaN;
       const pressure = freeCashFlow > 0 ? monthlyContribution / freeCashFlow : NaN;
+      const remainingCapital = freeCapital - amount;
+      const cushionMonths = expenses > 0 ? Math.max(remainingCapital, 0) / expenses : NaN;
+      const [cushionDisplay, cushionStatusClass, cushionText] = cushionStatus(cushionMonths);
       const [concentrationLabel, concentrationRank, concentrationStatus, concentrationText] = concentrationLevel(ratio);
       const hasBaseData = freeCapital > 0 && amount > 0;
-      const totalRank = hasBaseData ? scenarioRiskRank(concentrationRank, recoveryMonths, freeCashFlow, monthlyContribution, pressure) : NaN;
+      const totalRank = hasBaseData ? scenarioRiskRank(concentrationRank, recoveryMonths, freeCashFlow, monthlyContribution, pressure, cushionMonths, ratio, remainingCapital) : NaN;
       const [totalLabel, totalStatus] = totalRiskLabel(totalRank);
 
       setText('concentrationValue', Number.isFinite(ratio) && ratio > 0 ? pct(ratio * 100) : '—');
+      setText('cushionValue', hasBaseData ? cushionDisplay : '—');
+      setStatusClass('cushionValue', hasBaseData ? cushionStatusClass : 'status-empty');
       let recoveryDisplay = '—';
       let recoveryStatus = 'status-empty';
       if (Number.isFinite(recoveryMonths)) {
@@ -1949,7 +2053,7 @@
       setText('riskValue', totalLabel);
       setStatusClass('riskLevel', concentrationStatus);
       setStatusClass('riskValue', totalStatus);
-      const commentData = {freeCapital, amount, income, expenses, monthlyContribution, months, freeCashFlow, availableCashFlow, ratio, recoveryMonths, pressure, concentrationText, totalLabel};
+      const commentData = {freeCapital, amount, income, expenses, monthlyContribution, months, freeCashFlow, availableCashFlow, ratio, recoveryMonths, pressure, concentrationText, cushionMonths, cushionText, totalLabel};
       setHTML('scenarioReview', buildScenarioReview(commentData));
 
       let capital = amount;
@@ -1964,7 +2068,7 @@
     function calculatePartnerScenario() {
       setScenarioSubhead('partner');
       setPartnerLabels();
-      setResultOrder(['concentrationValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskLevel', 'riskValue']);
+      setResultOrder(['concentrationValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskLevel', 'cushionValue', 'riskValue']);
       showResultRows(3);
       showReviewCard(false);
       showGuidance(false);
@@ -1983,7 +2087,9 @@
       setText('scenarioProfit', '—');
       setText('riskLevel', '—');
       setText('riskValue', '—');
+      setText('cushionValue', '—');
       setStatusClass('riskLevel', 'status-empty');
+      setStatusClass('cushionValue', 'status-empty');
       setStatusClass('riskValue', 'status-empty');
       setHTML('scenarioReview', '');
     }
@@ -1991,7 +2097,7 @@
     function calculateGoalScenario() {
       setScenarioSubhead('goal');
       setGoalLabels();
-      setResultOrder(['concentrationValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskLevel', 'riskValue']);
+      setResultOrder(['concentrationValue', 'recoveryValue', 'scenarioFinal', 'scenarioProfit', 'riskLevel', 'cushionValue', 'riskValue']);
       showResultRows(3);
       showReviewCard(false);
       showGuidance(false);
@@ -2004,7 +2110,9 @@
       setText('scenarioProfit', '—');
       setText('riskLevel', '—');
       setText('riskValue', '—');
+      setText('cushionValue', '—');
       setStatusClass('riskLevel', 'status-empty');
+      setStatusClass('cushionValue', 'status-empty');
       setStatusClass('riskValue', 'status-empty');
       setHTML('scenarioReview', '');
     }
