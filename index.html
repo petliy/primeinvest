@@ -1968,7 +1968,7 @@
       showResultRows(3);
       showReviewCard(false);
       showGuidance(false);
-      setText('monitoringStatus', 'Партнёрские начисления зависят от фактических условий брокера, количества совершённых сделок, активности участников, пополнений и подключённых депозитов. Расчёт показывает ориентир диапазона.');
+      setText('monitoringStatus', 'Расчёт отражает ориентир дохода от первой линии и не включает расширенную глубину партнёрской структуры. Фактические начисления зависят от условий брокера, количества сделок, активности участников, пополнений и подключённых депозитов.');
       ['concentrationValue','recoveryValue','scenarioFinal'].forEach(id => setStatusClass(id, 'status-empty'));
       const count = value('partnerCount');
       const avgCapital = value('partnerCapital');
