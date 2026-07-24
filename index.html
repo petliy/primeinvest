@@ -27,6 +27,8 @@
     html {
       scroll-behavior: smooth;
       background: var(--bg);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     body {
@@ -1309,7 +1311,6 @@
     }
 
     .risk-guidance__item {
-      min-height: 100%;
       border: 1px solid var(--line);
       background: #F8F4EC;
       padding: 14px;
@@ -1405,6 +1406,89 @@
       .result-value.small {
         font-size: clamp(22px, 6.6vw, 28px);
         line-height: 1;
+      }
+    }
+
+
+    /* iPhone portrait/landscape compatibility */
+    @media (max-width: 900px) {
+      .risk-guidance__item {
+        min-height: 0;
+        height: auto;
+      }
+    }
+
+    @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+      .page,
+      .topbar__inner {
+        width: min(100% - 24px, 1180px);
+      }
+
+      .calc-hero {
+        padding-top: 20px;
+        padding-bottom: 18px;
+      }
+
+      .calc-hero__head {
+        padding-bottom: 12px;
+      }
+
+      .calc-hero__head h1 {
+        font-size: 34px;
+        line-height: 1;
+        max-width: 720px;
+      }
+
+      .calc-hero__subhead {
+        gap: 18px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+      }
+
+      .section-title {
+        font-size: 26px;
+      }
+
+      .calculator {
+        grid-template-columns: 42% 58%;
+      }
+
+      .calc-left {
+        border-right: 1px solid var(--line);
+        border-bottom: 0;
+      }
+
+      .calc-left,
+      .calc-right {
+        padding: 14px;
+      }
+
+      .result-row {
+        padding: 10px 0;
+      }
+
+      .result-label {
+        font-size: 10px;
+      }
+
+      .result-value {
+        font-size: 30px;
+      }
+
+      .result-value.small {
+        font-size: 23px;
+      }
+
+      .risk-guidance {
+        padding: 14px;
+      }
+
+      .risk-guidance__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .risk-guidance__item {
+        padding: 12px;
       }
     }
 
